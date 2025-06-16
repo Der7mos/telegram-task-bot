@@ -136,3 +136,5 @@ def reminder_loop():
 
 threading.Thread(target=reminder_loop, daemon=True).start()
 bot.polling()
+# force redeploy 16.06.2025
+
