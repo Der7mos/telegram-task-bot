@@ -38,18 +38,28 @@ def send_welcome(message):
     )
 
 # Добавление одной или нескольких задач
-@bot.message_handler(commands=['add'])
-def add_task(message):
-    task_text = message.text[5:].strip()
-    if not task_text:
+@bot.message_handler(func=lambda message: message.text.startswith('/add'))
+def add_tasks(message):
+    raw_text = message.text[4:].strip()  # всё после "/add"
+    if not raw_text:
         bot.send_message(message.chat.id, "Используй:\n/add Задача 1; Задача 2\nили\n/add\nЗадача 1\nЗадача 2")
         return
-    tasks = [t.strip() for t in task_text.replace('\n', ';').split(';') if t.strip()]
+    
+    # Разбиваем на задачи по \n и ;
+    lines = raw_text.replace('\n', ';').split(';')
+    tasks = [t.strip() for t in lines if t.strip()]
+    
+    if not tasks:
+        bot.send_message(message.chat.id, "Не удалось распознать задачи.")
+        return
+
     for task in tasks:
         cursor.execute("INSERT INTO tasks (user_id, text, remind_at) VALUES (?, ?, ?)",
                        (message.chat.id, task, None))
     conn.commit()
+
     bot.send_message(message.chat.id, f"✅ Добавлены задачи:\n• " + "\n• ".join(tasks))
+
 
 # Список задач
 @bot.message_handler(commands=['list'])
